@@ -201,7 +201,6 @@ a { color: inherit; }
 /* ===== Projects ===== */
 .projects {
   position: relative;
-  overflow: hidden;
   background: #f2f1f5;
   padding: 72px 24px 40px;
 }
@@ -236,6 +235,70 @@ a { color: inherit; }
   opacity: 0.85;
 }
 
+/* Content stays centered/full-width. The TOC is absolutely placed
+   in the left gutter (out of the content flow, so it never pushes
+   the cards), and its inner card is sticky — bounded by the projects
+   section, so it never crosses into the hero. */
+.projects__layout { position: relative; }
+.projects__content { min-width: 0; }
+
+.toc {
+  position: absolute;
+  top: 0;
+  left: -234px;
+  height: 100%;
+  width: 200px;
+}
+.toc__card {
+  position: sticky;
+  top: 90px;
+}
+
+/* When the viewport is too narrow to have a real gutter, hide it. */
+@media (max-width: 1360px) {
+  .toc { display: none; }
+}
+.toc__card {
+  background: #fff;
+  border: 1px solid #ececec;
+  border-radius: var(--radius-md);
+  padding: 18px;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.toc__title {
+  margin: 0 0 8px;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 700;
+}
+.toc__link {
+  display: block;
+  padding: 7px 10px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.toc__link:hover {
+  background: #f4f0fa;
+  color: var(--accent-strong);
+}
+.toc__link.is-active {
+  background: var(--tag-bg);
+  color: var(--tag-ink);
+  border-left-color: var(--accent-strong);
+  font-weight: 600;
+}
+
+
+
 .grid-title {
   color: var(--ink);
   font-size: 1.15rem;
@@ -261,6 +324,11 @@ a { color: inherit; }
   border-radius: var(--radius-lg);
   padding: 34px;
   box-shadow: var(--shadow);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.feature-card:hover {
+  transform: translateY(-4px) scale(1.015);
+  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.16);
 }
 
 /* Alternate image/lessons sides */
@@ -415,8 +483,8 @@ a { color: inherit; }
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 .mini-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28);
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.18);
 }
 .mini-card__head {
   display: flex;

@@ -86,15 +86,27 @@
     return body;
   }
 
+  function slugify(str) {
+    return str
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
   // Render featured cards, alternating layout each row.
   var featured = document.getElementById("featured");
+  var sections = []; // { id, title } for the TOC + scroll-spy
   FEATURED.forEach(function (p, i) {
+    var id = "project-" + slugify(p.title);
     var card = el("div", "feature-card" + (i % 2 === 1 ? " reverse" : ""));
+    card.id = id;
     card.appendChild(mockup(p));
     card.appendChild(featureBody(p));
     card.appendChild(lessonsPanel(p));
     featured.appendChild(card);
+    sections.push({ id: id, title: p.title });
   });
+  sections.push({ id: "more", title: "More projects" });
 
   // Render smaller grid cards.
   var grid = document.getElementById("grid");
@@ -120,4 +132,68 @@
     card.appendChild(tags);
     grid.appendChild(card);
   });
+
+  // Build the sticky table of contents.
+  var toc = document.getElementById("toc");
+  toc.appendChild(el("p", "toc__title", "Jump to"));
+  var tocLinks = {};
+  sections.forEach(function (s) {
+    var link = el("a", "toc__link", s.title);
+    link.href = "#" + s.id;
+    link.addEventListener("click", function (e) {
+      e.preventDefault();
+      var target = document.getElementById(s.id);
+      if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    toc.appendChild(link);
+    tocLinks[s.id] = link;
+  });
+
+  // Scroll-spy: pick the single section whose top is the last one
+  // above a trigger line near the top of the viewport. Deterministic,
+  // so it advances one entry at a time as you scroll.
+  var spyTargets = sections
+    .map(function (s) {
+      return { id: s.id, node: document.getElementById(s.id) };
+    })
+    .filter(function (t) {
+      return t.node;
+    });
+
+  function setActive(id) {
+    spyTargets.forEach(function (t) {
+      tocLinks[t.id].classList.toggle("is-active", t.id === id);
+    });
+  }
+
+  function updateActive() {
+    var line = window.innerHeight * 0.3; // trigger line at 30% down
+    var activeId = spyTargets[0].id;
+    for (var i = 0; i < spyTargets.length; i++) {
+      var top = spyTargets[i].node.getBoundingClientRect().top;
+      if (top - line <= 0) {
+        activeId = spyTargets[i].id; // last section past the line
+      } else {
+        break;
+      }
+    }
+    setActive(activeId);
+  }
+
+  var ticking = false;
+  window.addEventListener(
+    "scroll",
+    function () {
+      if (!ticking) {
+        window.requestAnimationFrame(function () {
+          updateActive();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    },
+    { passive: true }
+  );
+  window.addEventListener("resize", updateActive);
+  updateActive();
 })();
