@@ -42,12 +42,12 @@ a { color: inherit; }
   padding: 64px 24px;
   overflow: hidden;
   background:
-    radial-gradient(60% 55% at 18% 22%, rgba(178, 138, 226, 0.62) 0%, rgba(178, 138, 226, 0) 60%),
-    radial-gradient(50% 50% at 82% 18%, rgba(240, 150, 170, 0.58) 0%, rgba(240, 150, 170, 0) 60%),
-    radial-gradient(55% 55% at 75% 80%, rgba(120, 172, 224, 0.52) 0%, rgba(120, 172, 224, 0) 62%),
-    radial-gradient(45% 45% at 25% 82%, rgba(240, 200, 130, 0.56) 0%, rgba(240, 200, 130, 0) 60%),
-    radial-gradient(70% 60% at 50% 50%, rgba(168, 220, 194, 0.42) 0%, rgba(168, 220, 194, 0) 70%),
-    linear-gradient(135deg, #d5cbe2 0%, #cbc4d6 100%);
+    radial-gradient(60% 55% at 18% 22%, rgba(166, 110, 224, 0.78) 0%, rgba(166, 110, 224, 0) 62%),
+    radial-gradient(50% 50% at 82% 18%, rgba(244, 120, 148, 0.74) 0%, rgba(244, 120, 148, 0) 62%),
+    radial-gradient(55% 55% at 75% 80%, rgba(96, 156, 226, 0.70) 0%, rgba(96, 156, 226, 0) 64%),
+    radial-gradient(45% 45% at 25% 82%, rgba(244, 190, 96, 0.72) 0%, rgba(244, 190, 96, 0) 62%),
+    radial-gradient(70% 60% at 50% 50%, rgba(140, 216, 180, 0.55) 0%, rgba(140, 216, 180, 0) 72%),
+    linear-gradient(135deg, #d3c7e4 0%, #c8c0d6 100%);
 }
 
 /* Soft paper-grain / bleed texture layer for the watercolor feel */
@@ -73,11 +73,30 @@ a { color: inherit; }
   .hero::before { animation: none; }
 }
 
+/* Edge fade overlay: transparent around the content, easing to the
+   projects background color toward the edges. Sits above the waves
+   and texture (via DOM order at z-index -1) but below the content. */
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(242, 241, 245, 0) 55%,
+      rgba(242, 241, 245, 0.7) 82%,
+      #f2f1f5 100%
+    );
+}
+
 .hero__inner {
   max-width: var(--maxw);
   margin: 0 auto;
   width: 100%;
   position: relative;
+  z-index: 1;
 }
 
 /* Full-height wavy side panels that act as a border between
@@ -87,14 +106,20 @@ a { color: inherit; }
   top: 0;
   bottom: 0;
   width: clamp(130px, 20vw, 280px);
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
+  /* seamless wave tile (one full 320px period) repeated vertically.
+     Anchored to the bottom so a tile boundary lands exactly on the
+     hero's bottom edge — where the projects waves pick it up. */
+  background-repeat: repeat-y;
+  background-size: 100% 660px;
+  background-position: center bottom;
   pointer-events: none;
-  z-index: -1;
+  z-index: 0;
   opacity: 0.5;
   filter: drop-shadow(0 0 8px rgba(122, 79, 176, 0.18));
-  /* long-wavelength vertical wave; stretches to full height */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 1000' preserveAspectRatio='none'%3E%3Cpath d='M0,0 L70,0 C90,120 90,200 70,320 C50,440 50,540 70,660 C90,760 90,880 70,1000 L0,1000 Z' fill='%237a4fb0'/%3E%3C/svg%3E");
+  /* exactly one period of the ORIGINAL wave (same control-point
+     spacing → identical curve), repeated. Starts and ends at the
+     centerline moving outward, so tiles seamlessly. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 660' preserveAspectRatio='none'%3E%3Cpath d='M0,0 L70,0 C90,120 90,200 70,320 C50,440 50,540 70,660 L0,660 Z' fill='%237a4fb0'/%3E%3C/svg%3E");
 }
 .hero__waves--left {
   left: 0;
@@ -102,8 +127,8 @@ a { color: inherit; }
 .hero__waves--right {
   right: 0;
   transform: scaleX(-1);
-  /* anti-phase wave: bulges inward where the left wave retracts */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 1000' preserveAspectRatio='none'%3E%3Cpath d='M0,0 L70,0 C50,120 50,200 70,320 C90,440 90,540 70,660 C50,760 50,880 70,1000 L0,1000 Z' fill='%237a4fb0'/%3E%3C/svg%3E");
+  /* anti-phase tile: bulges inward where the left wave retracts */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 660' preserveAspectRatio='none'%3E%3Cpath d='M0,0 L70,0 C50,120 50,200 70,320 C90,440 90,540 70,660 L0,660 Z' fill='%237a4fb0'/%3E%3C/svg%3E");
 }
 
 @media (max-width: 720px) {
@@ -218,20 +243,16 @@ a { color: inherit; }
   z-index: 0;
   opacity: 0.5;
   filter: none;
-  /* continues the hero left wave: it ended heading inward, so this
-     starts by bulging inward (toward 30) to flow on without a break */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 1000' preserveAspectRatio='none'%3E%3Cpath d='M0,0 L70,0 C50,120 50,200 70,320 C90,440 90,540 70,660 C50,760 50,880 70,1000 L0,1000 Z' fill='%237a4fb0'/%3E%3C/svg%3E");
-}
-.projects__waves--right {
-  /* continues the hero right wave (its phase opposite the left) */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 1000' preserveAspectRatio='none'%3E%3Cpath d='M0,0 L70,0 C90,120 90,200 70,320 C50,440 50,540 70,660 C90,760 90,880 70,1000 L0,1000 Z' fill='%237a4fb0'/%3E%3C/svg%3E");
+  /* same seamless tile as the hero, but anchored to the TOP so the
+     wave continues from the hero's bottom edge without a phase break */
+  background-position: center top;
 }
 
 .section-title {
   color: var(--ink);
-  font-size: 1.4rem;
+  font-size: 2.2rem;
   font-weight: 700;
-  margin: 0 0 28px;
+  margin: 0 0 32px;
   opacity: 0.85;
 }
 
@@ -244,10 +265,13 @@ a { color: inherit; }
 
 .toc {
   position: absolute;
-  top: 0;
-  left: -234px;
-  height: 100%;
+  top: 72px;
+  /* left gutter: center of viewport, minus half the content width,
+     minus the TOC width + gap */
+  left: calc(50% - (var(--maxw) / 2) - 234px);
+  height: calc(100% - 72px);
   width: 200px;
+  z-index: 6;
 }
 .toc__card {
   position: sticky;
@@ -511,14 +535,25 @@ a { color: inherit; }
 
 /* Footer */
 .footer {
+  position: relative;
+  overflow: hidden;
   background: #7a4fb0;
   color: rgba(255, 255, 255, 0.85);
   text-align: center;
-  padding: 32px 24px 48px;
+  padding: 24px 24px 24px;
   font-size: 0.9rem;
 }
 .footer a { color: #fff; text-decoration: none; font-weight: 600; }
 .footer a:hover { text-decoration: underline; }
+
+/* Cat peeking up from the bottom edge (only top of face visible) */
+.footer__cat {
+  position: absolute;
+  left: 15%;
+  bottom: -16px;
+  line-height: 0;
+  pointer-events: none;
+}
 
 /* ===== Responsive ===== */
 @media (max-width: 860px) {
