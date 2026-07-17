@@ -426,7 +426,8 @@
     }
 
     var Graph = ForceGraph()(mount)
-      .graphData({ nodes: nodes, links: links })
+      .graphData({ nodes: nodes, links: links });
+    Graph
       .backgroundColor("#ffffff")
       .nodeRelSize(5)
       .nodeVal(function (n) {
@@ -502,12 +503,18 @@
 
     // Vertical gravity: gently pull every node toward the horizontal
     // centerline (y=0). This flattens the layout so node repulsion
-    // spreads disconnected clusters SIDEWAYS into the wide, short pane
-    // instead of stacking them vertically.
-    var vGravity = LAYOUT.verticalGravity;
+    // spreads disconnected clusters SIDEWAYS into a wide, short pane.
+    // Scaled by the pane's aspect ratio: strong when wide/short, and
+    // effectively off when the pane is squarish (e.g. mobile).
     var vForce = function (alpha) {
+      var w = mount.clientWidth || 1;
+      var h = mount.clientHeight || 1;
+      // 0 when square, ramps up as the pane gets wider than tall
+      var wideness = Math.max(0, w / h - 1);
+      var g = LAYOUT.verticalGravity * Math.min(1, wideness);
+      if (g <= 0) return;
       for (var i = 0; i < nodes.length; i++) {
-        nodes[i].vy -= nodes[i].y * vGravity * alpha;
+        nodes[i].vy -= nodes[i].y * g * alpha;
       }
     };
     Graph.d3Force("vertGravity", vForce);
@@ -548,10 +555,17 @@
       });
     }
 
-    // Fit once the layout settles.
-    Graph.onEngineStop(function () {
-      Graph.zoomToFit(400, 40);
-    });
+    // Fit the view once nodes have real coordinates. Using onEngineStop
+    // alone fit too early (before layout settled) leaving it zoomed in;
+    // instead fit on a short timer after load, same as the reset button.
+    var fitTries = 0;
+    function initialFit() {
+      fitTries++;
+      Graph.zoomToFit(600, 40);
+      // keep re-fitting a few times as the layout settles
+      if (fitTries < 6) setTimeout(initialFit, 400);
+    }
+    setTimeout(initialFit, 400);
   }
 
   function buildTagIndexFallback(el, projects, onTagClick) {

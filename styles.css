@@ -670,6 +670,7 @@ a { color: inherit; }
   color: var(--accent-strong);
   cursor: pointer;
   user-select: none;
+  margin-bottom: 8px;
   padding: 7px 16px;
   border: 1px solid #e0dae9;
   border-radius: 999px;
@@ -847,6 +848,14 @@ a { color: inherit; }
     padding: 10px 24px;
     align-items: center;
     transition: padding 0.3s ease;
+  }
+  /* Offset scroll targets so the sticky header doesn't cover them
+     when jumping via the TOC. */
+  .feature-card,
+  #more,
+  #graph,
+  .mini-card {
+    scroll-margin-top: 76px;
   }
   /* tighter padding + smaller title once the header sticks to the top */
   .section-head.is-stuck {
