@@ -645,6 +645,129 @@ a { color: inherit; }
   border-radius: 999px;
 }
 
+/* Tag ↔ project graph */
+.graph-hint {
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: -8px 0 18px;
+  max-width: 60ch;
+}
+/* "Explore by tech" heading row with the toggle aligned right */
+.graph-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.graph-head .grid-title { margin-bottom: 8px; }
+
+.graph-toggle {
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent-strong);
+  cursor: pointer;
+  user-select: none;
+  padding: 7px 16px;
+  border: 1px solid #e0dae9;
+  border-radius: 999px;
+  background: #fff;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.graph-toggle:hover {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  color: #fff;
+}
+
+.graph-wrap {
+  position: relative;
+  background: #fff;
+  border: 1px solid #ececec;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.graph-reset {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 3;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #e0dae9;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--accent-strong);
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.graph-reset:hover {
+  background: var(--accent-strong);
+  color: #fff;
+}
+.graph-wrap.graph-hidden .graph-reset { display: none; }
+
+.graph-canvas {
+  width: 100%;
+  height: 380px;
+}
+.graph-canvas canvas { display: block; }
+
+/* Static reverse-index fallback */
+.tag-index {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 440px;
+  overflow-y: auto;
+  border-top: 1px solid #ececec;
+}
+/* when the graph is hidden, let the index use the freed-up space */
+.graph-wrap.graph-hidden .tag-index {
+  max-height: 560px;
+  border-top: none;
+}
+.tag-index__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font: inherit;
+  transition: background 0.15s ease;
+}
+.tag-index__row:hover { background: #f4f0fa; }
+.tag-index__row.is-active { background: var(--tag-bg); }
+.tag-index__tag {
+  font-weight: 700;
+  color: var(--tag-ink);
+  background: var(--tag-bg);
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+.tag-index__projects {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 600px) {
+  .graph-canvas { height: 320px; }
+}
+
 /* Footer */
 .footer {
   position: relative;

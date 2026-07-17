@@ -135,6 +135,7 @@
     sections.push({ id: id, title: p.title });
   });
   sections.push({ id: "more", title: "More projects" });
+  sections.push({ id: "graph", title: "Explore by tech" });
 
   // Render smaller grid cards.
   var grid = document.getElementById("grid");
@@ -210,8 +211,9 @@
     spyTargets.forEach(function (t) {
       tocLinks[t.id].classList.toggle("is-active", t.id === id);
     });
-    // Expand the grid sub-list while we're in "More projects" or any grid card.
-    var inMore = id === "more" || gridIds.indexOf(id) !== -1;
+    // Expand the grid sub-list while we're in "More projects", any grid
+    // card, or the "Explore by tech" graph section that follows them.
+    var inMore = id === "more" || id === "graph" || gridIds.indexOf(id) !== -1;
     if (subGroup) subGroup.classList.toggle("is-open", inMore);
     // Keep "More projects" highlighted as the parent while inside the grid.
     if (gridIds.indexOf(id) !== -1 && tocLinks["more"]) {
@@ -297,5 +299,313 @@
     tocAside.addEventListener("click", function (e) {
       if (e.target.closest(".toc__link")) setMenu(false);
     });
+  }
+
+  // ===== Tag ↔ project graph =====
+  buildTagGraph();
+
+  function buildTagGraph() {
+    var mount = document.getElementById("tag-graph");
+    var fallbackEl = document.getElementById("tag-index");
+    if (!mount) return;
+
+    /* ---- Layout controls (tweak these to reshape the graph) ---- */
+    var LAYOUT = {
+      charge: -90,          // node repulsion; more negative = more spread out
+      linkDistance: 34,     // base edge length for shared tags
+      leafLinkDistance: 14, // shorter edge for single-project tags (pulls them in tight)
+      leafTagSize: 2,       // radius of single-project tags (smaller)
+      hideLeafTags: false,  // set true to remove single-project tags entirely
+      verticalGravity: 0.12,// pull toward the horizontal centerline; higher
+                            // = flatter layout that spreads clusters sideways
+    };
+    /* ------------------------------------------------------------ */
+
+    // Collect every project with its normalized tag list.
+    var projects = [];
+    FEATURED.forEach(function (p) {
+      projects.push({ title: p.title, id: "project-" + slugify(p.title), tags: p.tech || [] });
+    });
+    GRID.forEach(function (p) {
+      projects.push({ title: p.title, id: "project-" + slugify(p.title), tags: p.tags || [] });
+    });
+
+    // Build nodes + links (bipartite: project nodes <-> tag nodes).
+    var nodesById = {};
+    var links = [];
+    var tagCount = {};
+
+    projects.forEach(function (p) {
+      nodesById[p.id] = { id: p.id, name: p.title, type: "project", cardId: p.id };
+      p.tags.forEach(function (raw) {
+        var tag = String(raw).trim();
+        if (!tag) return;
+        var tagId = "tag:" + tag.toLowerCase();
+        if (!nodesById[tagId]) {
+          nodesById[tagId] = { id: tagId, name: tag, type: "tag" };
+        }
+        tagCount[tagId] = (tagCount[tagId] || 0) + 1;
+        links.push({ source: p.id, target: tagId });
+      });
+    });
+
+    var nodes = Object.keys(nodesById).map(function (k) {
+      var n = nodesById[k];
+      if (n.type === "tag") {
+        n.deg = tagCount[n.id] || 1;
+        n.isLeaf = n.deg === 1; // tag attached to only one project
+      }
+      return n;
+    });
+
+    // Optionally drop single-project tags (and their links) entirely.
+    if (LAYOUT.hideLeafTags) {
+      var leafIds = {};
+      nodes = nodes.filter(function (n) {
+        if (n.type === "tag" && n.isLeaf) { leafIds[n.id] = true; return false; }
+        return true;
+      });
+      links = links.filter(function (l) {
+        return !leafIds[l.source] && !leafIds[l.target];
+      });
+    }
+
+    // Holds a reference so the index can drive the graph once built.
+    var graphApi = { focusTag: function () {} };
+
+    // Build the reverse-index list. Clicking a tag focuses it in the
+    // graph. Always shown alongside the graph (also acts as fallback).
+    buildTagIndexFallback(fallbackEl, projects, function (tagId) {
+      graphApi.focusTag(tagId);
+    });
+
+    if (typeof ForceGraph !== "function") {
+      // Library didn't load — show only the static reverse index.
+      mount.hidden = true;
+      if (fallbackEl) fallbackEl.hidden = false;
+      return;
+    }
+    // Graph loaded: show the index too, as a companion panel.
+    if (fallbackEl) fallbackEl.hidden = false;
+
+    // "Hide graph" checkbox: collapse the canvas, keep the tag index.
+    var hideToggle = document.getElementById("hideGraph");
+    if (hideToggle) {
+      var graphWrap = mount.closest(".graph-wrap");
+      hideToggle.addEventListener("click", function () {
+        var hide = !mount.hidden; // toggle
+        mount.hidden = hide;
+        if (graphWrap) graphWrap.classList.toggle("graph-hidden", hide);
+        hideToggle.textContent = hide ? "Show graph" : "Hide graph";
+        hideToggle.setAttribute("aria-pressed", hide ? "true" : "false");
+        if (!hide) {
+          // re-fit the layout when the canvas comes back
+          sizeGraph();
+          Graph.zoomToFit(400, 40);
+        }
+      });
+    }
+
+    // Precompute each node's neighbors for hover highlighting.
+    var neighbors = {};
+    var linkKey = {};
+    nodes.forEach(function (n) { neighbors[n.id] = {}; });
+    links.forEach(function (l) {
+      neighbors[l.source][l.target] = true;
+      neighbors[l.target][l.source] = true;
+      linkKey[l.source + "|" + l.target] = true;
+    });
+
+    var PURPLE = "#7a4fb0";
+    var TAG_COL = "#c9a7f0";
+    var INK = "#4a4a4a";
+    var hoverId = null;
+
+    function connected(aId, bId) {
+      return aId === bId || (neighbors[aId] && neighbors[aId][bId]);
+    }
+
+    var Graph = ForceGraph()(mount)
+      .graphData({ nodes: nodes, links: links })
+      .backgroundColor("#ffffff")
+      .nodeRelSize(5)
+      .nodeVal(function (n) {
+        return n.type === "project" ? 6 : Math.max(3, (n.deg || 1) * 1.6);
+      })
+      .linkColor(function (l) {
+        if (!hoverId) return "rgba(122,79,176,0.18)";
+        var s = typeof l.source === "object" ? l.source.id : l.source;
+        var t = typeof l.target === "object" ? l.target.id : l.target;
+        return s === hoverId || t === hoverId ? PURPLE : "rgba(122,79,176,0.06)";
+      })
+      .linkWidth(function (l) {
+        if (!hoverId) return 1;
+        var s = typeof l.source === "object" ? l.source.id : l.source;
+        var t = typeof l.target === "object" ? l.target.id : l.target;
+        return s === hoverId || t === hoverId ? 2.5 : 1;
+      })
+      .nodeCanvasObject(function (node, ctx, scale) {
+        var faded = hoverId && !connected(hoverId, node.id);
+        var isProject = node.type === "project";
+        var r = isProject
+          ? 6
+          : node.isLeaf
+          ? LAYOUT.leafTagSize
+          : Math.max(3.5, (node.deg || 1) * 1.4);
+        ctx.globalAlpha = faded ? 0.15 : 1;
+
+        // node dot
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, r, 0, 2 * Math.PI);
+        ctx.fillStyle = isProject ? PURPLE : TAG_COL;
+        ctx.fill();
+        if (isProject) {
+          ctx.lineWidth = 1.5 / scale;
+          ctx.strokeStyle = "#fff";
+          ctx.stroke();
+        }
+
+        // label
+        var label = node.name;
+        var fontSize = (isProject ? 12 : 11) / scale;
+        ctx.font = (isProject ? "600 " : "") + fontSize + "px Inter, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = isProject ? "#1c1c1c" : INK;
+        // only show tag labels when zoomed in enough, to reduce clutter
+        if (isProject || scale > 1.1 || hoverId) {
+          ctx.fillText(label, node.x, node.y + r + fontSize * 0.9);
+        }
+        ctx.globalAlpha = 1;
+      })
+      .onNodeHover(function (node) {
+        hoverId = node ? node.id : null;
+        mount.style.cursor = node && node.type === "project" ? "pointer" : node ? "default" : "";
+      })
+      .onNodeClick(function (node) {
+        if (node.type === "project" && node.cardId) {
+          var card = document.getElementById(node.cardId);
+          if (card) card.scrollIntoView({ behavior: "smooth", block: "start" });
+        } else if (node.type === "tag") {
+          zoomToNode(node);
+          highlightIndexRow(node.id);
+        }
+      });
+
+    // Layout forces (driven by LAYOUT config above). Uses only the
+    // forces force-graph provides internally, to avoid mixing d3 builds.
+    Graph.d3Force("charge").strength(LAYOUT.charge);
+    Graph.d3Force("link").distance(function (l) {
+      var t = typeof l.target === "object" ? l.target : nodesById[l.target];
+      return t && t.isLeaf ? LAYOUT.leafLinkDistance : LAYOUT.linkDistance;
+    });
+
+    // Vertical gravity: gently pull every node toward the horizontal
+    // centerline (y=0). This flattens the layout so node repulsion
+    // spreads disconnected clusters SIDEWAYS into the wide, short pane
+    // instead of stacking them vertically.
+    var vGravity = LAYOUT.verticalGravity;
+    var vForce = function (alpha) {
+      for (var i = 0; i < nodes.length; i++) {
+        nodes[i].vy -= nodes[i].y * vGravity * alpha;
+      }
+    };
+    Graph.d3Force("vertGravity", vForce);
+
+    function zoomToNode(node) {
+      hoverId = node.id; // reuse highlight state to emphasize its links
+      Graph.centerAt(node.x, node.y, 700);
+      Graph.zoom(3, 700);
+    }
+
+    // Let the index drive the graph: focus a tag by its id.
+    graphApi.focusTag = function (tagId) {
+      var node = nodes.find(function (n) { return n.id === tagId; });
+      if (!node) return;
+      // Only scroll the graph into view if it's mostly off-screen,
+      // so clicking a list row doesn't yank the page when the graph
+      // is already visible.
+      var rect = mount.getBoundingClientRect();
+      var offscreen = rect.bottom < 80 || rect.top > window.innerHeight - 80;
+      if (offscreen) mount.scrollIntoView({ behavior: "smooth", block: "center" });
+      zoomToNode(node);
+    };
+
+    // Size the canvas to its container and keep it responsive.
+    function sizeGraph() {
+      Graph.width(mount.clientWidth).height(mount.clientHeight);
+    }
+    sizeGraph();
+    window.addEventListener("resize", sizeGraph);
+
+    // Reset-view button: clear any highlight and fit the whole graph.
+    var resetBtn = document.getElementById("graphReset");
+    if (resetBtn) {
+      resetBtn.addEventListener("click", function () {
+        hoverId = null;
+        highlightIndexRow(null);
+        Graph.zoomToFit(500, 40);
+      });
+    }
+
+    // Fit once the layout settles.
+    Graph.onEngineStop(function () {
+      Graph.zoomToFit(400, 40);
+    });
+  }
+
+  function buildTagIndexFallback(el, projects, onTagClick) {
+    if (!el) return;
+    el.innerHTML = "";
+    // tag -> [project titles]
+    var byTag = {};
+    projects.forEach(function (p) {
+      p.tags.forEach(function (raw) {
+        var tag = String(raw).trim();
+        if (!tag) return;
+        (byTag[tag] = byTag[tag] || []).push(p.title);
+      });
+    });
+    var tags = Object.keys(byTag).sort(function (a, b) {
+      return byTag[b].length - byTag[a].length || a.localeCompare(b);
+    });
+    tags.forEach(function (tag) {
+      var tagId = "tag:" + tag.toLowerCase();
+      var row = el2("button", "tag-index__row");
+      row.type = "button";
+      row.setAttribute("data-tag-id", tagId);
+      row.appendChild(el2("span", "tag-index__tag", tag));
+      row.appendChild(el2("span", "tag-index__projects", byTag[tag].join(", ")));
+      if (typeof onTagClick === "function") {
+        row.addEventListener("click", function () {
+          onTagClick(tagId);
+          highlightIndexRow(tagId);
+        });
+      }
+      el.appendChild(row);
+    });
+  }
+
+  // Highlight the matching row in the index (and scroll it into view).
+  function highlightIndexRow(tagId) {
+    var index = document.getElementById("tag-index");
+    if (!index) return;
+    index.querySelectorAll(".tag-index__row").forEach(function (r) {
+      r.classList.toggle("is-active", r.getAttribute("data-tag-id") === tagId);
+    });
+    var active = index.querySelector(".tag-index__row.is-active");
+    if (active) {
+      // Scroll ONLY within the index panel (not the page) so clicking a
+      // graph node doesn't yank the whole window.
+      var top = active.offsetTop - index.clientHeight / 2 + active.offsetHeight / 2;
+      index.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    }
+  }
+
+  function el2(tag, cls, txt) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (txt != null) n.textContent = txt;
+    return n;
   }
 })();

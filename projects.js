@@ -20,7 +20,7 @@ const FEATURED = [
   {
     title: "Stock Analyzer",
     gh: "https://github.com/yoavdim/stocks_analyzer",
-    tech: ["python", "numpy", "finance", "scalene", "multiprocessing", "curve fitting"],
+    tech: ["python", "numpy", "finance", "scalene", "multiprocessing", "curve fitting", "data analysis"],
     image: "", // e.g. "assets/stock-analyzer.png"
     blurb: "A quantitative stock analysis and portfolio optimization tool.",
     features: [
@@ -62,7 +62,7 @@ const FEATURED = [
     title: "Agentic Job Finder",
     gh: "", // private for now
     badge: "Coming soon",
-    tech: ["kiro LLM agent", "python", "browser automation", "web app", "chrome extension"],
+    tech: ["kiro LLM agent", "python", "browser automation", "web app", "chrome extension", "AI"],
     image: "",
     blurb:
       "An agent-driven job-search workflow plus a browser UI for reviewing and triaging roles. You drive it by talking to Kiro, which follows steering files to search, filter, verify, and maintain the tracker.",
@@ -80,7 +80,7 @@ const FEATURED = [
   {
     title: "RL Project: I Did It My Way",
     gh: "https://github.com/yoavdim/i-did-it-my-way",
-    tech: ["python", "reinforcement learning", "robotics", "simulation"],
+    tech: ["python", "reinforcement learning", "robotics", "simulation", "AI"],
     image: "",
     blurb:
       "Testing different methods of adapting the Reinforcement Learning training environment for a 4-legged robot to learn to walk successfully with a malfunctioning leg.",
@@ -121,43 +121,43 @@ const GRID = [
     gh: "", // add repo/live URL here if you have one
     description:
       "A small timer web app that also shows the time in the tab title, so you can focus on the PDF and not the timer. Mainly a web-dev exercise, with extras like URL parsing and acting as a Chrome omnibox search engine — all while staying a static page.",
-    tags: ["JavaScript", "Web"],
+    tags: ["JavaScript", "web app"],
   },
   {
     title: "Panopto Video Scraper",
     gh: "https://github.com/yoavdim/panopto_crawler",
     description:
       "Uses Selenium and browser automation to bypass restrictions on downloading videos from the university server, while automating the process for entire courses.",
-    tags: ["Python", "Selenium", "Automation"],
+    tags: ["Python", "Selenium", "browser automation"],
   },
   {
     title: "Branch Predictor",
     gh: "https://github.com/yoavdim/branch_predictor",
     description: "CPU branch prediction simulator exploring local/global history schemes.",
-    tags: ["C++", "Computer Architecture"],
+    tags: ["C++", "Computer Architecture", "University"],
   },
   {
     title: "Kong",
     gh: "https://github.com/yoavdim/Kong",
     description: "University hardware lab project written in SystemVerilog.",
-    tags: ["SystemVerilog", "Chip Design"],
+    tags: ["SystemVerilog", "Chip Design", "University"],
   },
   {
     title: "smash",
     gh: "https://github.com/yoavdim/smash",
     description: "A small Unix shell — command parsing, job control, and built-ins.",
-    tags: ["C++", "OS", "Shell"],
+    tags: ["C++", "OS", "Shell", "University"],
   },
   {
     title: "ttftp",
     gh: "https://github.com/yoavdim/ttftp",
     description: "A TFTP client/server implementation over UDP.",
-    tags: ["C", "Networking"],
+    tags: ["C", "Networking", "University"],
   },
   {
     title: "CUDA Experiments",
     gh: "https://github.com/yoavdim/cuda2",
     description: "GPU compute kernels and parallel algorithm experiments in CUDA.",
-    tags: ["CUDA", "GPU", "Parallel"],
+    tags: ["CUDA", "C++", "GPU", "Parallel", "University"],
   },
 ];
