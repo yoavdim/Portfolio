@@ -70,7 +70,17 @@
     </aside>
 
     <div class="projects__inner">
-      <h2 class="section-title">Projects</h2>
+      <span class="stick-sentinel" aria-hidden="true"></span>
+      <div class="section-head" id="sectionHead">
+        <h2 class="section-title">Projects</h2>
+        <button class="toc-toggle" id="tocToggle" aria-label="Open project menu" aria-expanded="false" aria-controls="toc">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+      </div>
 
       <div class="projects__layout">
         <div class="projects__content">
@@ -86,7 +96,7 @@
   </main>
 
   <footer class="footer">
-    <p>Built by Yoav · <a href="#" data-link="github">GitHub</a> · <a href="#" data-link="linkedin">LinkedIn</a></p>
+    <p>Built by Yoav Dim &copy; · <a href="#" data-link="github">GitHub</a> · <a href="#" data-link="linkedin">LinkedIn</a></p>
 
     <div class="footer__cat" aria-hidden="true">
       <svg viewBox="0 0 340 200" width="136" height="80">

@@ -16,11 +16,24 @@
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
   --shadow-soft: 0 6px 18px rgba(0, 0, 0, 0.08);
   --maxw: 1080px;
+  /* TOC sidebar sizing (overridden in the compact middle tier) */
+  --toc-w: 200px;
+  --toc-gap: 34px;
 }
 
 * { box-sizing: border-box; }
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  /* Bi-stable transition between the hero and projects: proximity snap
+     clicks to one page near the seam, but lets the tall projects
+     section scroll freely once you're inside it. */
+  scroll-snap-type: y proximity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-snap-type: none; }
+}
 
 body {
   margin: 0;
@@ -37,6 +50,7 @@ a { color: inherit; }
   position: relative;
   isolation: isolate;
   min-height: 100vh;
+  scroll-snap-align: start;
   display: flex;
   align-items: center;
   padding: 64px 24px;
@@ -228,6 +242,7 @@ a { color: inherit; }
   position: relative;
   background: #f2f1f5;
   padding: 72px 24px 40px;
+  scroll-snap-align: start;
 }
 
 .projects__inner {
@@ -248,12 +263,43 @@ a { color: inherit; }
   background-position: center top;
 }
 
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
 .section-title {
   color: var(--ink);
   font-size: 2.2rem;
   font-weight: 700;
   margin: 0 0 32px;
   opacity: 0.85;
+}
+
+/* Hamburger toggle — only shown on narrow screens (see media query) */
+.toc-toggle {
+  display: none;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+/* invisible marker just above the section head; when it scrolls out of
+   view we know the head has become "stuck" to the top */
+.stick-sentinel {
+  position: absolute;
+  top: 0;
+  height: 1px;
+  width: 1px;
 }
 
 /* Content stays centered/full-width. The TOC is absolutely placed
@@ -268,9 +314,9 @@ a { color: inherit; }
   top: 72px;
   /* left gutter: center of viewport, minus half the content width,
      minus the TOC width + gap */
-  left: calc(50% - (var(--maxw) / 2) - 234px);
+  left: calc(50% - (var(--maxw) / 2) - var(--toc-w) - var(--toc-gap));
   height: calc(100% - 72px);
-  width: 200px;
+  width: var(--toc-w);
   z-index: 6;
 }
 .toc__card {
@@ -278,8 +324,29 @@ a { color: inherit; }
   top: 90px;
 }
 
-/* When the viewport is too narrow to have a real gutter, hide it. */
-@media (max-width: 1360px) {
+/* Gradual sidebar tier: while the TOC is shown (>1280px), shrink the
+   content column, the TOC, and the gap FLUIDLY together as the
+   viewport narrows — no hard jump. Each eases from its full size
+   (at >=1580px) down to a compact size (near 1281px) via clamp(),
+   scaled on viewport width. */
+@media (min-width: 1281px) {
+  :root {
+    /* 200px at wide -> ~150px when narrow */
+    --toc-w: clamp(150px, calc(200px - (1580px - 100vw) * 0.17), 200px);
+    /* 34px at wide -> ~18px when narrow */
+    --toc-gap: clamp(18px, calc(34px - (1580px - 100vw) * 0.055), 34px);
+    /* content fills whatever remains after the reserved gutters
+       (TOC + gap + a small edge margin) on both sides */
+    --maxw: min(
+      1080px,
+      calc(100vw - 2 * (var(--toc-w) + var(--toc-gap) + 14px))
+    );
+  }
+}
+
+/* When the viewport is too narrow even for the fluid sidebar,
+   hide it (the hamburger TOC takes over). */
+@media (max-width: 1280px) {
   .toc { display: none; }
 }
 .toc__card {
@@ -315,6 +382,38 @@ a { color: inherit; }
   color: var(--accent-strong);
 }
 .toc__link.is-active {
+  background: var(--tag-bg);
+  color: var(--tag-ink);
+  border-left-color: var(--accent-strong);
+  font-weight: 600;
+}
+
+/* Collapsible sub-list of grid projects under "More projects" */
+.toc__sub {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.3s ease, opacity 0.25s ease;
+}
+.toc__sub.is-open {
+  max-height: 400px;
+  opacity: 1;
+}
+.toc__sub-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 2px;
+}
+.toc__link--sub {
+  margin-left: 10px;
+  padding: 5px 10px;
+  font-size: 0.82rem;
+  color: var(--ink-faint);
+  border-left: 2px solid #e4e0ec;
+  border-radius: 0 8px 8px 0;
+}
+.toc__link--sub.is-active {
   background: var(--tag-bg);
   color: var(--tag-ink);
   border-left-color: var(--accent-strong);
@@ -385,6 +484,19 @@ a { color: inherit; }
   font-size: 1rem;
 }
 .gh-link:hover { text-decoration: underline; }
+
+.gh-link--icon {
+  display: inline-flex;
+  align-items: center;
+  line-height: 0;
+  transform: translateY(3px);
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+.gh-link--icon:hover {
+  color: var(--ink);
+  transform: translateY(1px);
+  text-decoration: none;
+}
 
 .badge {
   display: inline-block;
@@ -570,4 +682,146 @@ a { color: inherit; }
 @media (max-width: 600px) {
   .hero__row { flex-direction: column; gap: 20px; }
   .card-grid { grid-template-columns: 1fr; }
+
+  /* tuck the footer cat into the far-left corner, clear of the text */
+  .footer__cat {
+    left: 10px;
+    bottom: -11px;
+  }
+  .footer__cat svg {
+    width: 92px;
+    height: auto;
+  }
+
+  /* Make the hero a full-height column: content sits at the top, the
+     scroll arrow is pushed to the bottom (in flow, so it never
+     overlaps the text) and stays visible. */
+  .hero {
+    align-items: stretch;
+    padding-top: 40px;
+    padding-bottom: 24px;
+  }
+  .hero__inner {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 64px); /* hero min-height minus its padding */
+  }
+  .hero__row { flex: 0 0 auto; }
+  .scroll-cue {
+    margin: auto auto 0;   /* auto top margin pushes it to the bottom */
+    padding-top: 24px;
+  }
+}
+
+/* ===== Mobile: sticky Projects title + hamburger TOC ===== */
+/* Applies where the side-gutter TOC is hidden (<=1280px). */
+@media (max-width: 1280px) {
+  .section-head {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    margin: 0 -24px 32px;   /* bleed to the section's horizontal padding */
+    padding: 10px 24px;
+    align-items: center;
+    transition: padding 0.3s ease;
+  }
+  /* tighter padding + smaller title once the header sticks to the top */
+  .section-head.is-stuck {
+    padding: 8px 24px;
+  }
+  .section-title { transition: font-size 0.3s ease; }
+  .section-head.is-stuck .section-title {
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+  .section-head.is-stuck .toc-toggle {
+    width: 34px;
+    height: 34px;
+  }
+  .section-title { margin: 0; }
+  .toc-toggle { display: flex; }
+
+  /* Purple background band that fades in only once the head is stuck.
+     Spans the full viewport width regardless of the container. */
+  .section-head::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 100vw;
+    transform: translateX(-50%);
+    z-index: -1;
+    background: #7a4fb0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  }
+  .section-head.is-stuck::before {
+    opacity: 1;
+  }
+
+  /* wavy lower border on the sticky purple bar */
+  .section-head::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    width: 100vw;
+    transform: translateX(-50%);
+    height: 12px;
+    z-index: -1;
+    background-repeat: repeat-x;
+    background-size: 100px 12px;
+    background-position: left top;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='12' viewBox='0 0 100 12' preserveAspectRatio='none'%3E%3Cpath d='M0,0 H100 V2 C75,2 75,12 50,12 C25,12 25,2 0,2 Z' fill='%237a4fb0'/%3E%3C/svg%3E");
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  .section-head.is-stuck::after {
+    opacity: 1;
+  }
+  /* When stuck, flip text/icon to light for contrast on purple. */
+  .section-head.is-stuck .section-title { color: #fff; opacity: 1; }
+  .section-head.is-stuck .toc-toggle { color: #fff; }
+
+  /* Repurpose the hidden gutter TOC as a dropdown panel from the head. */
+  .toc {
+    display: block;
+    position: fixed;
+    top: 64px;
+    right: 12px;
+    left: auto;
+    width: min(280px, calc(100vw - 24px));
+    height: auto;
+    max-height: calc(100vh - 88px);
+    overflow-y: auto;
+    z-index: 19;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+  }
+  .toc.is-open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+  .toc__card { position: static; }
+
+  /* Dim backdrop behind the open panel. */
+  .toc-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s;
+    z-index: 18;
+  }
+  .toc-backdrop.is-open {
+    opacity: 1;
+    visibility: visible;
+  }
 }

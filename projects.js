@@ -20,7 +20,7 @@ const FEATURED = [
   {
     title: "Stock Analyzer",
     gh: "https://github.com/yoavdim/stocks_analyzer",
-    tech: "python / numpy / finance / scaiene / multiprocessing / curve fitting",
+    tech: ["python", "numpy", "finance", "scalene", "multiprocessing", "curve fitting"],
     image: "", // e.g. "assets/stock-analyzer.png"
     blurb: "A quantitative stock analysis and portfolio optimization tool.",
     features: [
@@ -30,7 +30,7 @@ const FEATURED = [
     ],
     lessons: [
       "Portfolio theory",
-      "Performance profiling (Scaiene)",
+      "Performance profiling (Scalene)",
       "Exception handling in Process Pool",
     ],
   },
@@ -39,26 +39,30 @@ const FEATURED = [
     gh: "", // private for now
     badge: "Coming soon",
     paper: "https://tinyurl.com/paper-asmr",
-    tech: "rust / distributed systems / byzantine fault tolerance / discrete-event simulation",
+    tech: ["rust", "crypto", "distributed systems", "algorithms", "byzantine fault tolerance", "simulation"],
     image: "",
     blurb:
       "A Rust implementation of my paper \"Leader-Aware Asynchronous State Machine Replication\" (2023), built on the VABA agreement protocol (Abraham–Malkhi–Spiegelman 2018), with a simulator that benchmarks it against classic VABA.",
     features: [
       "Signer-filtered leader election — elect only parties that signed the last committed block, so crashed/slow leaders drop out on their own",
-      "Reuses VABA's Proposal-Promotion & View-Change phases verbatim; election is a single start-up switch for clean A/B comparison",
+      "Commits the previous cryptographic signatures as a proof of being alive, without allowing a byzantine adversary to abuse the mechanism",
+      "Correctness and worst-case complexity for the byzantine case are proved in the paper, the speedup of the avarage case in the crash only use case is shown in the simulation repository (a later work)",
+      "Reuses VABA's Proposal-Promotion & View-Change phases verbatim",
       "Deterministic discrete-event network simulator modeling delays, crashes, and partitions",
     ],
     lessons: [
-      "Asynchronous BFT consensus",
-      "Utilization as a causal-chain metric",
-      "Building reproducible protocol simulators in Rust",
+      "Academic papers writing standards",
+      "Decentralized algorithms proofs",
+      "The async model",
+      "Reproducible simulators",
+      "Rust language"
     ],
   },
   {
     title: "Agentic Job Finder",
     gh: "", // private for now
     badge: "Coming soon",
-    tech: "kiro agent / python / selenium / browser automation / single-file HTML app",
+    tech: ["kiro LLM agent", "python", "browser automation", "web app", "chrome extension"],
     image: "",
     blurb:
       "An agent-driven job-search workflow plus a browser UI for reviewing and triaging roles. You drive it by talking to Kiro, which follows steering files to search, filter, verify, and maintain the tracker.",
@@ -76,7 +80,7 @@ const FEATURED = [
   {
     title: "RL Project: I Did It My Way",
     gh: "https://github.com/yoavdim/i-did-it-my-way",
-    tech: "python / reinforcement learning / robotics / simulation",
+    tech: ["python", "reinforcement learning", "robotics", "simulation"],
     image: "",
     blurb:
       "Testing different methods of adapting the Reinforcement Learning training environment for a 4-legged robot to learn to walk successfully with a malfunctioning leg.",
@@ -94,7 +98,7 @@ const FEATURED = [
   {
     title: "Physics Lab Tools",
     gh: "https://github.com/yoavdim/labmaster",
-    tech: "matlab / data analysis / statistics",
+    tech: ["matlab", "data analysis", "statistics"],
     image: "",
     blurb:
       "A MATLAB toolkit for physics lab report calculations, built to speed up the experiments during university (Technion).",
