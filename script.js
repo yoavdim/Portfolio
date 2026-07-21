@@ -8,7 +8,7 @@
     var key = el.getAttribute("data-link");
     if (PROFILE[key]) {
       el.setAttribute("href", PROFILE[key]);
-      if (key !== "cv") {
+      if (key !== "cv" && key !== "email") {
         el.setAttribute("target", "_blank");
         el.setAttribute("rel", "noopener");
       }
@@ -46,7 +46,7 @@
   }
 
   var GH_ICON =
-    '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">' +
+    '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true">' +
     '<path d="M12 .5C5.73.5.5 5.73.5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.79 1.2 1.79 1.2 1.04 1.79 2.73 1.27 3.4.97.1-.76.41-1.27.74-1.56-2.55-.29-5.24-1.28-5.24-5.68 0-1.25.45-2.28 1.19-3.08-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.08 0 4.41-2.69 5.38-5.25 5.67.42.36.8 1.08.8 2.18v3.23c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5Z"/></svg>';
 
   function ghIconLink(url, label) {
@@ -65,7 +65,7 @@
   // repo (yet)" in a quieter way than a badge. The white underlay line
   // gives the strike a clean cut against the logo.
   var GH_ICON_CROSSED =
-    '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">' +
+    '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" aria-hidden="true">' +
     '<path fill="currentColor" d="M12 .5C5.73.5.5 5.73.5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.79 1.2 1.79 1.2 1.04 1.79 2.73 1.27 3.4.97.1-.76.41-1.27.74-1.56-2.55-.29-5.24-1.28-5.24-5.68 0-1.25.45-2.28 1.19-3.08-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.08 0 4.41-2.69 5.38-5.25 5.67.42.36.8 1.08.8 2.18v3.23c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5Z"/>' +
     '<line x1="3" y1="21" x2="21" y2="3" stroke="#fff" stroke-width="4" stroke-linecap="round"/>' +
     '<line x1="3" y1="21" x2="21" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
@@ -80,11 +80,6 @@
     btn.setAttribute("aria-label", message);
     var tip = el("span", "gh-pending__tip", message);
     tip.setAttribute("role", "tooltip");
-    // Tap toggles the tip on touch devices (where there's no hover).
-    btn.addEventListener("click", function (e) {
-      e.preventDefault();
-      wrap.classList.toggle("is-open");
-    });
     wrap.appendChild(btn);
     wrap.appendChild(tip);
     return wrap;
@@ -94,7 +89,7 @@
   // icon: a filled document with text lines and a magnifying glass
   // knocked out as negative space (fill-rule evenodd).
   var PAPER_ICON =
-    '<svg viewBox="0 0 24 24" width="21" height="21" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">' +
+    '<svg viewBox="0 0 24 24" width="25" height="25" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">' +
     // document body (rounded rect) with text lines knocked out
     '<path d="M6 2h9.2L20 6.8V19a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V5a3 3 0 0 1 3-3Zm1 7.2a1 1 0 1 0 0 2h9a1 1 0 1 0 0-2H7Zm0 3.6a1 1 0 1 0 0 2h9a1 1 0 1 0 0-2H7Zm0 3.6a1 1 0 1 0 0 2h5a1 1 0 1 0 0-2H7Z"/>' +
     "</svg>";
@@ -172,10 +167,10 @@
     // Split-pane job finder: a job list on the left, an open detail on the right.
     "job-finder":
       '<svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Split-pane job tracker">' +
-      '<rect width="320" height="200" fill="#f4f2f7"/>' +
-      // left pane: list
-      '<rect x="14" y="16" width="150" height="168" rx="8" fill="#ffffff" stroke="#e3dcef"/>' +
-      '<rect x="26" y="28" width="70" height="8" rx="4" fill="#7a4fb0"/>' +
+      '<rect width="320" height="200" fill="#1f2229"/>' +
+      // left pane: list (dark app UI)
+      '<rect x="14" y="16" width="150" height="168" rx="8" fill="#2a2734" stroke="#3b3749"/>' +
+      '<rect x="26" y="28" width="70" height="8" rx="4" fill="#a274d6"/>' +
       // list rows (checkbox + lines), one highlighted
       '<g fill="#c9a7f0">' +
       '<rect x="26" y="52" width="10" height="10" rx="2"/>' +
@@ -183,22 +178,23 @@
       '<rect x="26" y="112" width="10" height="10" rx="2"/>' +
       '<rect x="26" y="142" width="10" height="10" rx="2"/>' +
       "</g>" +
-      '<rect x="20" y="104" width="138" height="26" rx="5" fill="#efe7fa"/>' +
-      '<g fill="#b9b1c6">' +
+      // highlighted (selected) row — dark purple tint
+      '<rect x="20" y="104" width="138" height="26" rx="5" fill="#352d4c"/>' +
+      '<g fill="#635e75">' +
       '<rect x="44" y="52" width="104" height="6" rx="3"/>' +
       '<rect x="44" y="63" width="70" height="5" rx="2.5"/>' +
       '<rect x="44" y="82" width="104" height="6" rx="3"/>' +
       '<rect x="44" y="93" width="60" height="5" rx="2.5"/>' +
       "</g>" +
-      '<g fill="#8a6cbf">' +
+      '<g fill="#c1a0ec">' +
       '<rect x="44" y="112" width="104" height="6" rx="3"/>' +
       '<rect x="44" y="123" width="76" height="5" rx="2.5"/>' +
       "</g>" +
-      '<g fill="#b9b1c6">' +
+      '<g fill="#635e75">' +
       '<rect x="44" y="142" width="104" height="6" rx="3"/>' +
       '<rect x="44" y="153" width="66" height="5" rx="2.5"/>' +
       "</g>" +
-      // right pane: open detail tab
+      // right pane: open detail tab (stays LIGHT — the embedded page)
       '<rect x="176" y="16" width="130" height="168" rx="8" fill="#ffffff" stroke="#e3dcef"/>' +
       '<rect x="176" y="16" width="130" height="30" rx="8" fill="#7a4fb0"/>' +
       '<rect x="176" y="38" width="130" height="8" fill="#7a4fb0"/>' +
@@ -805,7 +801,13 @@
     var PURPLE = "#7a4fb0";
     var TAG_COL = "#c9a7f0";
     var INK = "#4a4a4a";
-    var hoverId = null;
+    var hoverId = null;   // node currently under the pointer (target)
+    var activeId = null;  // node being highlighted (kept during fade-out)
+    var strength = 0;     // 0..1 eased highlight amount (for the fade)
+    var lastFrame = 0;
+    var FADE_MS = 200;
+
+    function lerp(a, b, t) { return a + (b - a) * t; }
 
     function connected(aId, bId) {
       return aId === bId || (neighbors[aId] && neighbors[aId][bId]);
@@ -815,31 +817,43 @@
       .graphData({ nodes: nodes, links: links });
     Graph
       .backgroundColor("#ffffff")
+      // Keep repainting even when idle. Our hover highlight is driven by
+      // an external `hoverId`, which force-graph can't detect — with the
+      // default auto-pause the canvas freezes once the layout settles and
+      // hover stops having any visible effect.
+      .autoPauseRedraw(false)
       .nodeRelSize(5)
       .nodeVal(function (n) {
         return n.type === "project" ? 6 : Math.max(3, (n.deg || 1) * 1.6);
       })
       .linkColor(function (l) {
-        if (!hoverId) return "rgba(122,79,176,0.18)";
-        var s = typeof l.source === "object" ? l.source.id : l.source;
-        var t = typeof l.target === "object" ? l.target.id : l.target;
-        return s === hoverId || t === hoverId ? PURPLE : "rgba(122,79,176,0.06)";
+        // All three states share the same RGB, only the alpha differs,
+        // so we can ease the alpha by the highlight strength.
+        var a = 0.18;
+        if (strength > 0 && activeId) {
+          var s = typeof l.source === "object" ? l.source.id : l.source;
+          var t = typeof l.target === "object" ? l.target.id : l.target;
+          var hot = s === activeId || t === activeId;
+          a = lerp(0.18, hot ? 1 : 0.06, strength);
+        }
+        return "rgba(122,79,176," + a + ")";
       })
       .linkWidth(function (l) {
-        if (!hoverId) return 1;
+        if (strength <= 0 || !activeId) return 1;
         var s = typeof l.source === "object" ? l.source.id : l.source;
         var t = typeof l.target === "object" ? l.target.id : l.target;
-        return s === hoverId || t === hoverId ? 2.5 : 1;
+        var hot = s === activeId || t === activeId;
+        return hot ? lerp(1, 2.5, strength) : 1;
       })
       .nodeCanvasObject(function (node, ctx, scale) {
-        var faded = hoverId && !connected(hoverId, node.id);
+        var faded = strength > 0 && activeId && !connected(activeId, node.id);
         var isProject = node.type === "project";
         var r = isProject
           ? 6
           : node.isLeaf
           ? LAYOUT.leafTagSize
           : Math.max(3.5, (node.deg || 1) * 1.4);
-        ctx.globalAlpha = faded ? 0.15 : 1;
+        ctx.globalAlpha = faded ? lerp(1, 0.15, strength) : 1;
 
         // node dot
         ctx.beginPath();
@@ -860,10 +874,39 @@
         ctx.textBaseline = "middle";
         ctx.fillStyle = isProject ? "#1c1c1c" : INK;
         // only show tag labels when zoomed in enough, to reduce clutter
-        if (isProject || scale > 1.1 || hoverId) {
+        if (isProject || scale > 1.1 || strength > 0.02) {
           ctx.fillText(label, node.x, node.y + r + fontSize * 0.9);
         }
         ctx.globalAlpha = 1;
+      })
+      // Ease the highlight strength toward its target every frame so the
+      // hover effect fades in/out instead of snapping. Runs each frame
+      // because autoPauseRedraw is disabled.
+      .onRenderFramePre(function () {
+        var now = (typeof performance !== "undefined" ? performance.now() : Date.now());
+        var dt = lastFrame ? now - lastFrame : 16;
+        lastFrame = now;
+        if (hoverId) activeId = hoverId; // remember what to keep lit while fading
+        var target = hoverId ? 1 : 0;
+        var step = dt / FADE_MS;
+        if (strength < target) strength = Math.min(target, strength + step);
+        else if (strength > target) strength = Math.max(target, strength - step);
+      })
+      // Define the hover/click hit area. Without this, a custom
+      // nodeCanvasObject leaves the tiny tag dots almost impossible to
+      // hover, so highlighting appeared to do nothing. Pad the radius
+      // generously so tags are easy to target.
+      .nodePointerAreaPaint(function (node, color, ctx) {
+        var isProject = node.type === "project";
+        var r = isProject
+          ? 6
+          : node.isLeaf
+          ? LAYOUT.leafTagSize
+          : Math.max(3.5, (node.deg || 1) * 1.4);
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, r + 6, 0, 2 * Math.PI);
+        ctx.fill();
       })
       .onNodeHover(function (node) {
         hoverId = node ? node.id : null;

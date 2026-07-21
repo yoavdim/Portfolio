@@ -17,6 +17,7 @@
 const PROFILE = {
   github: "https://github.com/yoavdim",
   linkedin: "https://www.linkedin.com/in/yoav-dim/",
+  email: "mailto:yoav.dim@gmail.com",
 };
 
 const FEATURED = [
@@ -41,7 +42,7 @@ const FEATURED = [
   {
     title: "Agentic Job Finder",
     gh: "https://github.com/yoavdim/agentic-job-finder",
-    tech: ["kiro LLM agent", "python", "browser automation", "web app", "chrome extension", "AI"],
+    tech: ["Kiro LLM agent", "browser automation", "web app", "chrome extension", "AI"],
     image: "",
     illustration: "job-finder",
     blurb:
@@ -100,7 +101,6 @@ const FEATURED = [
     lessons: [
       "Reinforcement learning training dynamics",
       "Reward/environment shaping",
-      "Sim-to-real transfer",
     ],
   },
   {
@@ -119,7 +119,8 @@ const FEATURED = [
     lessons: [
       "Experimental error analysis",
       "Curve fitting & regression",
-      "Reusable scientific tooling in MATLAB",
+      "Symbolic math toolbox",
+      "User friendly API"
     ],
   },
 ];
@@ -146,7 +147,7 @@ const GRID = [
     gh: "https://github.com/yoavdim/tab-share",
     description:
       "A Chrome extension that gives an LLM agent control of the browser and lets a local web app drive a split tab, bypassing iframe restrictions via a native-messaging host. Built for the Agentic Job Finder.",
-    tech: ["JavaScript", "Chrome Extension", "browser automation", "native messaging"],
+    tech: ["JavaScript", "Chrome Extension", "browser automation"],
   },
   {
     title: "Panopto Video Scraper",

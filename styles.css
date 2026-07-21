@@ -561,7 +561,7 @@ a { color: inherit; }
   left: 50%;
   transform: translateX(-50%) translateY(4px);
   width: max-content;
-  max-width: 230px;
+  max-width: min(230px, calc(100vw - 24px));
   background: var(--dark-bg);
   color: #fff;
   font-size: 0.75rem;
@@ -588,11 +588,32 @@ a { color: inherit; }
   border-top-color: var(--dark-bg);
 }
 .gh-pending:hover .gh-pending__tip,
-.gh-pending:focus-within .gh-pending__tip,
-.gh-pending.is-open .gh-pending__tip {
+.gh-pending:focus-within .gh-pending__tip {
   opacity: 1;
   visibility: visible;
   transform: translateX(-50%) translateY(0);
+}
+
+/* On phones the icon can sit near a screen edge, so a bubble centered on
+   it would overflow. Pin the tip to the viewport with side gutters so it
+   always fits; drop the pointer arrow since it no longer targets the icon. */
+@media (max-width: 600px) {
+  .gh-pending__tip {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    top: auto;
+    bottom: 16px;
+    width: auto;
+    max-width: none;
+    text-align: center;
+    transform: translateY(6px);
+  }
+  .gh-pending:hover .gh-pending__tip,
+  .gh-pending:focus-within .gh-pending__tip {
+    transform: translateY(0);
+  }
+  .gh-pending__tip::after { display: none; }
 }
 
 .tech-line {
@@ -788,6 +809,9 @@ a { color: inherit; }
   flex-wrap: wrap;
 }
 .graph-head .grid-title { margin-bottom: 8px; }
+/* Make "Explore by tech" match the "Projects" heading size, keeping
+   the existing muted gray (ink at 0.6 opacity). */
+#graph.grid-title { font-size: 2.2rem; }
 
 .graph-toggle {
   font: inherit;
@@ -894,6 +918,42 @@ a { color: inherit; }
 @media (max-width: 600px) {
   .graph-canvas { height: 320px; }
 }
+
+/* Closing note after the graph — plain text, no card */
+.outro {
+  text-align: center;
+  margin: 56px auto 8px;
+  max-width: 60ch;
+  color: var(--ink-soft);
+}
+.outro__thanks {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 10px;
+}
+.outro__line {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0 0 6px;
+}
+.outro__mail-icon {
+  vertical-align: middle;
+  margin-right: 7px;
+}
+.outro__email {
+  margin: 0;
+  font-size: 1rem;
+}
+.outro__email a {
+  display: inline-flex;
+  align-items: center;
+  color: var(--accent-strong);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.outro__email a:hover { color: var(--ink); }
 
 /* Footer */
 .footer {
