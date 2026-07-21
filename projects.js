@@ -128,7 +128,7 @@ const GRID = [
   {
     title: "Exam Practice Timer",
     gh: "", // add repo/live URL here if you have one
-    image: "imgs/tab timer.png",
+    image: "imgs/tab-timer.png",
     description:
       "A small timer web app that also shows the time in the tab title, so you can focus on the PDF and not the timer. Mainly a web-dev exercise, with extras like URL parsing and acting as a Chrome omnibox search engine — all while staying a static page.",
     tech: ["JavaScript", "web app"],
