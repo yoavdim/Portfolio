@@ -99,8 +99,8 @@
             </button>
           </div>
           <p class="graph-hint">
-            Every project and its tech, as a connected graph — hover or tap a
-            node to highlight its links, click a project in the graph to jump to it.
+            A tag index for the projects. I also love graphs so here's one showing those relationships.
+            Hover or tap a tag to highlight its links, click a project in the graph to jump to it.
           </p>
           <div class="graph-wrap">
             <button type="button" class="graph-reset" id="graphReset" title="Reset view" aria-label="Reset view">
@@ -110,8 +110,9 @@
               </svg>
             </button>
             <div id="tag-graph" class="graph-canvas"></div>
-            <!-- Static reverse-index fallback (shown if the graph can't load) -->
-            <div id="tag-index" class="tag-index" hidden></div>
+            <!-- Reverse-index tag list: shown alongside the graph as a
+                 companion panel, and used on its own if the graph can't load -->
+            <div id="tag-index" class="tag-index" aria-label="Skills" hidden></div>
           </div>
         </div>
       </div>

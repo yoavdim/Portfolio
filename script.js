@@ -15,6 +15,21 @@
     }
   });
 
+  // Hero down-arrow: scroll to the projects section via JS. A native
+  // "#projects" hash jump gets canceled by the page's scroll-snap
+  // (proximity) and yanked back to the hero, so drive it explicitly —
+  // same approach the TOC links use.
+  var scrollCue = document.querySelector(".scroll-cue");
+  if (scrollCue) {
+    scrollCue.addEventListener("click", function (e) {
+      var target = document.getElementById("projects");
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+  }
+
   function el(tag, className, html) {
     var node = document.createElement(tag);
     if (className) node.className = className;
@@ -34,14 +49,45 @@
     '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">' +
     '<path d="M12 .5C5.73.5.5 5.73.5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.79 1.2 1.79 1.2 1.04 1.79 2.73 1.27 3.4.97.1-.76.41-1.27.74-1.56-2.55-.29-5.24-1.28-5.24-5.68 0-1.25.45-2.28 1.19-3.08-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.08 0 4.41-2.69 5.38-5.25 5.67.42.36.8 1.08.8 2.18v3.23c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5Z"/></svg>';
 
-  function ghIconLink(url) {
-    var a = el("a", "gh-link gh-link--icon", GH_ICON);
+  function ghIconLink(url, label) {
+    // When a label is given, show the icon + a small text label
+    // (used to distinguish multiple repos on one card, e.g. cuda1/2/3).
+    var a = el("a", "gh-link gh-link--icon" + (label ? " gh-link--labeled" : ""), GH_ICON + (label ? "<span>" + label + "</span>" : ""));
     a.href = url;
     a.target = "_blank";
     a.rel = "noopener";
-    a.setAttribute("aria-label", "View on GitHub");
-    a.title = "View on GitHub";
+    a.setAttribute("aria-label", label ? "View " + label + " on GitHub" : "View on GitHub");
+    a.title = label ? label + " on GitHub" : "View on GitHub";
     return a;
+  }
+
+  // GitHub logo with a diagonal strike through it — signals "no public
+  // repo (yet)" in a quieter way than a badge. The white underlay line
+  // gives the strike a clean cut against the logo.
+  var GH_ICON_CROSSED =
+    '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">' +
+    '<path fill="currentColor" d="M12 .5C5.73.5.5 5.73.5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.79 1.2 1.79 1.2 1.04 1.79 2.73 1.27 3.4.97.1-.76.41-1.27.74-1.56-2.55-.29-5.24-1.28-5.24-5.68 0-1.25.45-2.28 1.19-3.08-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.08 0 4.41-2.69 5.38-5.25 5.67.42.36.8 1.08.8 2.18v3.23c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5Z"/>' +
+    '<line x1="3" y1="21" x2="21" y2="3" stroke="#fff" stroke-width="4" stroke-linecap="round"/>' +
+    '<line x1="3" y1="21" x2="21" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
+    "</svg>";
+
+  // Crossed-out GH icon that reveals a project-specific note on hover,
+  // focus, or tap. Used when a project has no public repo yet.
+  function ghPendingIcon(message) {
+    var wrap = el("span", "gh-pending");
+    var btn = el("button", "gh-pending__btn", GH_ICON_CROSSED);
+    btn.type = "button";
+    btn.setAttribute("aria-label", message);
+    var tip = el("span", "gh-pending__tip", message);
+    tip.setAttribute("role", "tooltip");
+    // Tap toggles the tip on touch devices (where there's no hover).
+    btn.addEventListener("click", function (e) {
+      e.preventDefault();
+      wrap.classList.toggle("is-open");
+    });
+    wrap.appendChild(btn);
+    wrap.appendChild(tip);
+    return wrap;
   }
 
   // Research-paper icon in the same solid "paper-cut" style as the GH
@@ -64,6 +110,17 @@
   }
 
   function mockup(p) {
+    // Simple rounded image (no browser chrome) for non-app images.
+    if (p.noFrame && p.image) {
+      var frame = el("div", "mockup mockup--bare");
+      var img = document.createElement("img");
+      img.src = p.image;
+      img.alt = p.title;
+      img.loading = "lazy";
+      frame.appendChild(img);
+      return frame;
+    }
+
     var wrap = el("div", "mockup");
     var bar = el("div", "mockup__bar");
     bar.appendChild(el("span"));
@@ -78,12 +135,324 @@
       img.alt = p.title + " screenshot";
       img.loading = "lazy";
       screen.appendChild(img);
+    } else if (p.illustration && ILLUSTRATIONS[p.illustration]) {
+      var ill = el("div", "mockup__illustration", ILLUSTRATIONS[p.illustration]);
+      screen.appendChild(ill);
     } else {
       screen.appendChild(el("div", "mockup__placeholder", "screenshot"));
     }
     wrap.appendChild(screen);
     return wrap;
   }
+
+  // Draw a donut chart from proportions (0..1) as SVG arc segments.
+  function donut(cx, cy, rOuter, rInner, colors, props) {
+    var s = "";
+    var a0 = -Math.PI / 2; // start at top
+    for (var i = 0; i < props.length; i++) {
+      var a1 = a0 + props[i] * 2 * Math.PI;
+      var large = props[i] > 0.5 ? 1 : 0;
+      var x0 = cx + rOuter * Math.cos(a0), y0 = cy + rOuter * Math.sin(a0);
+      var x1 = cx + rOuter * Math.cos(a1), y1 = cy + rOuter * Math.sin(a1);
+      var xi1 = cx + rInner * Math.cos(a1), yi1 = cy + rInner * Math.sin(a1);
+      var xi0 = cx + rInner * Math.cos(a0), yi0 = cy + rInner * Math.sin(a0);
+      s += '<path d="M' + x0.toFixed(1) + ' ' + y0.toFixed(1) +
+        ' A' + rOuter + ' ' + rOuter + ' 0 ' + large + ' 1 ' + x1.toFixed(1) + ' ' + y1.toFixed(1) +
+        ' L' + xi1.toFixed(1) + ' ' + yi1.toFixed(1) +
+        ' A' + rInner + ' ' + rInner + ' 0 ' + large + ' 0 ' + xi0.toFixed(1) + ' ' + yi0.toFixed(1) +
+        ' Z" fill="' + colors[i % colors.length] + '"/>';
+      a0 = a1;
+    }
+    return s;
+  }
+
+  // Named SVG illustrations for project thumbnails (cleaner than a
+  // dense screenshot at small sizes). Reference via illustration: "key".
+  var ILLUSTRATIONS = {
+    // Split-pane job finder: a job list on the left, an open detail on the right.
+    "job-finder":
+      '<svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Split-pane job tracker">' +
+      '<rect width="320" height="200" fill="#f4f2f7"/>' +
+      // left pane: list
+      '<rect x="14" y="16" width="150" height="168" rx="8" fill="#ffffff" stroke="#e3dcef"/>' +
+      '<rect x="26" y="28" width="70" height="8" rx="4" fill="#7a4fb0"/>' +
+      // list rows (checkbox + lines), one highlighted
+      '<g fill="#c9a7f0">' +
+      '<rect x="26" y="52" width="10" height="10" rx="2"/>' +
+      '<rect x="26" y="82" width="10" height="10" rx="2"/>' +
+      '<rect x="26" y="112" width="10" height="10" rx="2"/>' +
+      '<rect x="26" y="142" width="10" height="10" rx="2"/>' +
+      "</g>" +
+      '<rect x="20" y="104" width="138" height="26" rx="5" fill="#efe7fa"/>' +
+      '<g fill="#b9b1c6">' +
+      '<rect x="44" y="52" width="104" height="6" rx="3"/>' +
+      '<rect x="44" y="63" width="70" height="5" rx="2.5"/>' +
+      '<rect x="44" y="82" width="104" height="6" rx="3"/>' +
+      '<rect x="44" y="93" width="60" height="5" rx="2.5"/>' +
+      "</g>" +
+      '<g fill="#8a6cbf">' +
+      '<rect x="44" y="112" width="104" height="6" rx="3"/>' +
+      '<rect x="44" y="123" width="76" height="5" rx="2.5"/>' +
+      "</g>" +
+      '<g fill="#b9b1c6">' +
+      '<rect x="44" y="142" width="104" height="6" rx="3"/>' +
+      '<rect x="44" y="153" width="66" height="5" rx="2.5"/>' +
+      "</g>" +
+      // right pane: open detail tab
+      '<rect x="176" y="16" width="130" height="168" rx="8" fill="#ffffff" stroke="#e3dcef"/>' +
+      '<rect x="176" y="16" width="130" height="30" rx="8" fill="#7a4fb0"/>' +
+      '<rect x="176" y="38" width="130" height="8" fill="#7a4fb0"/>' +
+      '<circle cx="192" cy="31" r="5" fill="#ffffff" opacity="0.9"/>' +
+      '<rect x="204" y="27" width="60" height="8" rx="4" fill="#ffffff" opacity="0.9"/>' +
+      // detail content
+      '<rect x="188" y="58" width="80" height="9" rx="4" fill="#3a3346"/>' +
+      '<rect x="188" y="74" width="106" height="6" rx="3" fill="#c8c0d6"/>' +
+      '<rect x="188" y="86" width="96" height="6" rx="3" fill="#d7d1e2"/>' +
+      '<rect x="188" y="104" width="60" height="18" rx="9" fill="#c9a7f0"/>' +
+      '<rect x="188" y="134" width="106" height="5" rx="2.5" fill="#e0dae9"/>' +
+      '<rect x="188" y="145" width="106" height="5" rx="2.5" fill="#e0dae9"/>' +
+      '<rect x="188" y="156" width="80" height="5" rx="2.5" fill="#e0dae9"/>' +
+      "</svg>",
+
+    // Physics lab: a small regression plot (top-left quarter) plus the
+    // two key formulas — chi-squared and error propagation.
+    "physics-fit":
+      (function () {
+        var svg =
+          '<svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Regression plot with chi-squared and error propagation formulas">' +
+          '<rect width="320" height="200" fill="#ffffff"/>';
+
+        // ---- Small plot in the top-left quarter (~150 x 96) ----
+        // data points around a rising line, with vertical error bars
+        var pts = [
+          [42, 78, 8],
+          [64, 66, 7],
+          [86, 58, 9],
+          [108, 44, 7],
+          [130, 32, 8],
+        ];
+        svg += '<line x1="30" y1="16" x2="30" y2="96" stroke="#333" stroke-width="1.3"/>';
+        svg += '<line x1="30" y1="96" x2="150" y2="96" stroke="#333" stroke-width="1.3"/>';
+        // best-fit line
+        svg += '<line x1="34" y1="84" x2="146" y2="26" stroke="#c0392b" stroke-width="2"/>';
+        // error bars + caps
+        svg += '<g stroke="#2f6fb0" stroke-width="1.4">';
+        pts.forEach(function (p) {
+          var x = p[0], y = p[1], e = p[2];
+          svg += '<line x1="' + x + '" y1="' + (y - e) + '" x2="' + x + '" y2="' + (y + e) + '"/>';
+          svg += '<line x1="' + (x - 3) + '" y1="' + (y - e) + '" x2="' + (x + 3) + '" y2="' + (y - e) + '"/>';
+          svg += '<line x1="' + (x - 3) + '" y1="' + (y + e) + '" x2="' + (x + 3) + '" y2="' + (y + e) + '"/>';
+        });
+        svg += "</g>";
+        svg += '<g fill="#1f4e79">';
+        pts.forEach(function (p) { svg += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="3"/>'; });
+        svg += "</g>";
+
+        var SERIF = "Georgia, 'Times New Roman', serif";
+
+        // ---- chi-squared formula (top-right) ----
+        // χ² = Σ (yᵢ − f(xᵢ))² / σᵢ²   shown with a fraction
+        svg += '<text x="176" y="46" font-family="' + SERIF + '" font-size="20" fill="#2a2333">' +
+          '<tspan font-style="italic">&#967;</tspan>' +
+          '<tspan font-size="12" dy="-8">2</tspan>' +
+          '<tspan font-size="20" dy="8"> = &#931;</tspan>' +
+          "</text>";
+        // fraction: numerator (yi - f(xi))^2 over sigma_i^2
+        svg += '<text x="226" y="38" font-family="' + SERIF + '" font-size="13" fill="#2a2333">' +
+          '(y' +
+          '<tspan font-size="9" dy="3">i</tspan>' +
+          '<tspan font-size="13" dy="-3"> &#8722; f</tspan>)' +
+          '<tspan font-size="9" dy="-6">2</tspan>' +
+          "</text>";
+        svg += '<line x1="226" y1="44" x2="300" y2="44" stroke="#2a2333" stroke-width="1.2"/>';
+        svg += '<text x="252" y="58" font-family="' + SERIF + '" font-size="13" fill="#2a2333">' +
+          '<tspan font-style="italic">&#963;</tspan>' +
+          '<tspan font-size="9" dy="3">i</tspan>' +
+          '<tspan font-size="9" dy="-9">2</tspan>' +
+          "</text>";
+
+        // ---- error propagation formula (bottom half, prominent) ----
+        // δf = √( Σᵢ (∂f/∂xᵢ)² · δxᵢ² )
+        // Built from separately-positioned pieces (no cumulative dy drift).
+        svg += '<rect x="24" y="118" width="272" height="64" rx="6" fill="#f4f0fa" stroke="#c9a7f0" stroke-width="1"/>';
+        var baseY = 156, PU = "#5b3a91";
+        function t(x, y, size, str, italic) {
+          return '<text x="' + x + '" y="' + y + '" font-family="' + SERIF + '" font-size="' + size + '" fill="' + PU + '"' +
+            (italic ? ' font-style="italic"' : "") + ">" + str + "</text>";
+        }
+        // δf =
+        svg += t(38, baseY, 22, "&#948;f", true);
+        svg += t(66, baseY, 20, "=");
+        // radical: short kick then long vinculum over the expression
+        svg += '<path d="M84 ' + baseY + ' l5 9 l7 -26 h188" fill="none" stroke="' + PU + '" stroke-width="1.6"/>';
+        // Σ with subscript i
+        svg += t(100, baseY, 22, "&#931;");
+        svg += t(116, baseY + 6, 10, "i", true);
+        // ( ∂f / ∂x_i )^2
+        svg += t(126, baseY, 16, "(");
+        svg += t(133, baseY, 15, "&#8706;f", true);
+        svg += t(150, baseY, 15, "/");
+        svg += t(157, baseY, 15, "&#8706;x", true);
+        svg += t(175, baseY + 5, 10, "i", true);
+        svg += t(182, baseY, 16, ")");
+        svg += t(190, baseY - 9, 11, "2");
+        // · δx_i^2
+        svg += t(200, baseY, 16, "&#183;");
+        svg += t(210, baseY, 15, "&#948;x", true);
+        svg += t(228, baseY + 5, 10, "i", true);
+        svg += t(235, baseY - 9, 11, "2");
+        svg += "</svg>";
+        return svg;
+      })(),
+
+    // Stock analyzer dashboard: efficient-frontier scatter + frontier
+    // curve on the left, allocation donut charts on the right.
+    "stock-analyzer":
+      (function () {
+        var svg =
+          '<svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Portfolio analyzer dashboard">' +
+          '<rect width="320" height="200" fill="#1f2229"/>';
+        // ---- Left: chart panel ----
+        svg += '<rect x="10" y="12" width="188" height="176" rx="4" fill="#15171c"/>';
+        // axes
+        svg += '<line x1="30" y1="24" x2="30" y2="168" stroke="#3a3f47" stroke-width="1.5"/>';
+        svg += '<line x1="30" y1="168" x2="188" y2="168" stroke="#3a3f47" stroke-width="1.5"/>';
+        // gridlines
+        svg += '<g stroke="#282c33" stroke-width="1">';
+        for (var gy = 48; gy < 168; gy += 30) svg += '<line x1="30" y1="' + gy + '" x2="188" y2="' + gy + '"/>';
+        for (var gx = 60; gx < 188; gx += 32) svg += '<line x1="' + gx + '" y1="24" x2="' + gx + '" y2="168"/>';
+        svg += "</g>";
+        // capital allocation line (dashed green)
+        svg += '<line x1="30" y1="150" x2="180" y2="40" stroke="#4c9a4c" stroke-width="1.5" stroke-dasharray="4,3"/>';
+        // efficient frontier curve (blue)
+        svg += '<path d="M40 150 Q70 70 120 52 T182 40" fill="none" stroke="#4a90d9" stroke-width="2.5"/>';
+        // asset points (scattered)
+        svg += '<g>' +
+          '<circle cx="176" cy="44" r="3.5" fill="#111"/>' +           // AAPL
+          '<circle cx="182" cy="66" r="3.5" fill="#111"/>' +           // MSFT
+          '<circle cx="110" cy="70" r="4" fill="#2f8f2f"/>' +          // market
+          '<circle cx="130" cy="78" r="4.5" fill="#c94fc9"/>' +        // optimal (magenta)
+          '<circle cx="96" cy="96" r="4.5" fill="#2fb7c9"/>' +         // min variance (cyan)
+          '<circle cx="128" cy="104" r="3" fill="#111"/>' +
+          '<circle cx="120" cy="118" r="3" fill="#111"/>' +
+          '<circle cx="34" cy="150" r="4" fill="#2f8f2f"/>' +          // risk-free
+          "</g>";
+        // legend chip
+        svg += '<rect x="36" y="30" width="66" height="26" rx="2" fill="#15171c" stroke="#3a3f47" stroke-width="0.8"/>';
+        svg += '<line x1="40" y1="37" x2="52" y2="37" stroke="#4a90d9" stroke-width="2"/>';
+        svg += '<line x1="40" y1="45" x2="52" y2="45" stroke="#4c9a4c" stroke-width="1.5" stroke-dasharray="3,2"/>';
+        svg += '<g fill="#8a9099"><rect x="56" y="34" width="40" height="3" rx="1.5"/><rect x="56" y="43" width="34" height="3" rx="1.5"/></g>';
+        // ---- Right: stats + donuts panel ----
+        svg += '<rect x="206" y="12" width="104" height="176" rx="4" fill="#15171c"/>';
+        // stat text lines
+        svg += '<g fill="#9aa0a6">';
+        svg += '<rect x="214" y="22" width="70" height="4" rx="2"/>';
+        svg += '<rect x="214" y="30" width="52" height="4" rx="2" fill="#4c9a4c"/>';
+        svg += '<rect x="214" y="44" width="70" height="4" rx="2"/>';
+        svg += '<rect x="214" y="52" width="52" height="4" rx="2" fill="#4c9a4c"/>';
+        svg += "</g>";
+        // mini weight table
+        svg += '<g fill="#3a3f47">';
+        for (var ty = 66; ty <= 90; ty += 8) svg += '<rect x="214" y="' + ty + '" width="88" height="3" rx="1.5"/>';
+        svg += "</g>";
+        // action buttons (red-outlined)
+        svg += '<g fill="none" stroke="#c0392b" stroke-width="1.2">';
+        svg += '<rect x="214" y="100" width="88" height="11" rx="2"/>';
+        svg += '<rect x="214" y="114" width="88" height="11" rx="2"/>';
+        svg += "</g>";
+        // two donut charts
+        svg += donut(238, 158, 16, 9, ["#c0392b", "#2f8f2f", "#e08a3c", "#4a90d9"], [0.55, 0.2, 0.15, 0.1]);
+        svg += donut(284, 158, 16, 9, ["#8e2f8e", "#c94fc9", "#c0392b", "#e0a0d0"], [0.4, 0.3, 0.2, 0.1]);
+        svg += "</svg>";
+        return svg;
+      })(),
+
+    // VABA leader election: 3 stages. Candidates on the left, an elected
+    // one committed in the ballot box; each round is signed (σ); a crashed
+    // candidate (red X) drops out of the next round's pool. Stacked
+    // vertically for a compact, thumbnail-friendly aspect ratio.
+    "vaba":
+      (function () {
+        var BLUE = "#4a90d9", ORANGE = "#e08a3c", GREEN = "#5aa84f", RED = "#d23b3b";
+
+        function sq(cx, cy, col) { return '<rect x="' + (cx - 8) + '" y="' + (cy - 8) + '" width="16" height="16" rx="2" fill="' + col + '"/>'; }
+        function circ(cx, cy, col) { return '<circle cx="' + cx + '" cy="' + cy + '" r="9" fill="' + col + '"/>'; }
+        function tri(cx, cy, col) { return '<path d="M' + cx + ' ' + (cy - 10) + ' L' + (cx + 9) + ' ' + (cy + 7) + ' L' + (cx - 9) + ' ' + (cy + 7) + ' Z" fill="' + col + '"/>'; }
+        function sigma(x, y) { return '<text x="' + x + '" y="' + y + '" font-family="Georgia,serif" font-style="italic" font-size="12" fill="#333">σ</text>'; }
+
+        // One column: 3 candidate options on top feeding into a mux (green
+        // box with a grey trapezoid), the elected option output below it.
+        function column(cx, shapeFn, electedCol, opts) {
+          opts = opts || {};
+          var candY = 34;
+          var xs = [cx - 26, cx, cx + 26];
+          var s = "";
+          // candidate options (with optional σ above, optional crashed strike)
+          for (var i = 0; i < 3; i++) {
+            s += shapeFn(xs[i], candY, [BLUE, ORANGE, GREEN][i]);
+            if (opts.candSigma) s += sigma(xs[i] - 4, candY - 13);
+          }
+          if (opts.crashed != null) {
+            var xC = xs[opts.crashed];
+            s += '<line x1="' + (xC - 12) + '" y1="' + (candY + 11) + '" x2="' + (xC + 12) + '" y2="' + (candY - 11) + '" stroke="' + RED + '" stroke-width="3" stroke-linecap="round"/>';
+          }
+          // mux: green box + grey trapezoid (wide top, narrow bottom)
+          s += '<rect x="' + (cx - 44) + '" y="68" width="88" height="86" rx="3" fill="#fff" stroke="#5aa84f" stroke-width="2"/>';
+          s += '<path d="M' + (cx - 36) + ' 82 h72 l-16 16 h-40 z" fill="#c9ccd1" stroke="#9aa0a6" stroke-width="1.4"/>';
+          // elected output below the mux
+          s += electedCol.fn(cx, 126, electedCol.col);
+          if (opts.electedSigma) s += sigma(cx + 12, 132);
+          return s;
+        }
+
+        function arrow(x) {
+          // right-pointing arrow between columns, around the mux height
+          return '<path d="M' + x + ' 104 h16 v-6 l12 9 -12 9 v-6 h-16 z" fill="#3a6fc4"/>';
+        }
+
+        var svg =
+          '<svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="VABA leader election stages">' +
+          '<rect width="320" height="200" fill="#ffffff"/>';
+        // Stage 1: squares, orange elected
+        svg += column(58, sq, { fn: sq, col: ORANGE }, {});
+        // Stage 2: circles (all σ-signed), green elected + σ
+        svg += column(160, circ, { fn: circ, col: GREEN }, { candSigma: true, electedSigma: true });
+        // Stage 3: triangles, blue crashed (X), blue elected
+        svg += column(262, tri, { fn: tri, col: BLUE }, { candSigma: true, crashed: 0 });
+        // arrows between columns (σ progression)
+        svg += arrow(106) + sigma(118, 128);
+        svg += arrow(208) + sigma(220, 128);
+        svg += "</svg>";
+        return svg;
+      })(),
+
+    // Quadruped robot (Unitree Go1-style) — stylized geometric silhouette.
+    "robot-dog":
+      '<svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Quadruped robot">' +
+      '<rect width="320" height="200" fill="#edf2f7"/>' +
+      // body (rounded pill shape)
+      '<rect x="100" y="62" width="140" height="42" rx="18" fill="#8a8f96" stroke="#6e7379" stroke-width="2"/>' +
+      // head (angular box)
+      '<path d="M88 74 L88 98 L64 96 L64 80 Z" fill="#a0a5ab" stroke="#6e7379" stroke-width="2"/>' +
+      // head sensors (eyes)
+      '<circle cx="72" cy="84" r="3.5" fill="#4a4e54"/>' +
+      '<circle cx="72" cy="92" r="2.5" fill="#4a4e54"/>' +
+      // handle on top
+      '<path d="M135 62 Q160 42 185 62" fill="none" stroke="#555" stroke-width="4" stroke-linecap="round"/>' +
+      // front-left leg
+      '<path d="M120 104 L116 130 L110 156 Q108 168 116 168 L120 168" fill="none" stroke="#a0a5ab" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>' +
+      // front-right leg
+      '<path d="M136 104 L134 128 L130 154 Q128 166 136 166 L140 166" fill="none" stroke="#c0c4c9" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>' +
+      // rear-left leg
+      '<path d="M210 104 L214 132 L218 158 Q220 170 212 170 L208 170" fill="none" stroke="#a0a5ab" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>' +
+      // rear-right leg
+      '<path d="M224 104 L226 130 L228 156 Q230 168 222 168 L218 168" fill="none" stroke="#c0c4c9" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>' +
+      // "Unitree" label
+      '<text x="178" y="88" font-family="Inter,sans-serif" font-size="10" font-weight="600" fill="#eee">Unitree</text>' +
+      // one leg highlighted red (the malfunctioning leg concept)
+      '<path d="M210 104 L214 132 L218 158 Q220 170 212 170 L208 170" fill="none" stroke="#e05555" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="5,4" opacity="0.8"/>' +
+      "</svg>",
+  };
 
   function lessonsPanel(p) {
     var panel = el("div", "lessons");
@@ -98,6 +467,8 @@
     head.appendChild(el("h3", "feature-card__title", p.title));
     if (p.gh) {
       head.appendChild(ghIconLink(p.gh));
+    } else if (p.ghPending) {
+      head.appendChild(ghPendingIcon(p.ghPending));
     } else if (p.badge) {
       head.appendChild(el("span", "badge", p.badge));
     }
@@ -144,17 +515,32 @@
     var card = el("div", "mini-card");
     card.id = "project-" + slugify(p.title);
     gridSections.push({ id: card.id, title: p.title });
+    if (p.image) {
+      var thumb = el("div", "mini-card__thumb");
+      var timg = document.createElement("img");
+      timg.src = p.image;
+      timg.alt = p.title;
+      timg.loading = "lazy";
+      thumb.appendChild(timg);
+      card.appendChild(thumb);
+    }
     var head = el("div", "mini-card__head");
     head.appendChild(el("h3", "mini-card__title", p.title));
-    if (p.gh) {
+    if (Array.isArray(p.gh)) {
+      p.gh.forEach(function (g) {
+        head.appendChild(ghIconLink(g.url || g, g.label));
+      });
+    } else if (p.gh) {
       head.appendChild(ghIconLink(p.gh));
+    } else if (p.ghPending) {
+      head.appendChild(ghPendingIcon(p.ghPending));
     } else if (p.badge) {
       head.appendChild(el("span", "badge", p.badge));
     }
     card.appendChild(head);
     if (p.description) card.appendChild(el("p", null, p.description));
     var tags = el("div", "tags");
-    (p.tags || []).forEach(function (t) {
+    (p.tech || []).forEach(function (t) {
       tags.appendChild(el("span", "tag", t));
     });
     card.appendChild(tags);
@@ -327,7 +713,7 @@
       projects.push({ title: p.title, id: "project-" + slugify(p.title), tags: p.tech || [] });
     });
     GRID.forEach(function (p) {
-      projects.push({ title: p.title, id: "project-" + slugify(p.title), tags: p.tags || [] });
+      projects.push({ title: p.title, id: "project-" + slugify(p.title), tags: p.tech || [] });
     });
 
     // Build nodes + links (bipartite: project nodes <-> tag nodes).
