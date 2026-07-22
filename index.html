@@ -112,7 +112,13 @@
             <div id="tag-graph" class="graph-canvas"></div>
             <!-- Reverse-index tag list: shown alongside the graph as a
                  companion panel, and used on its own if the graph can't load -->
-            <div id="tag-index" class="tag-index" aria-label="Skills" hidden></div>
+            <div id="tag-index-section" class="tag-index-section" hidden>
+              <div class="tag-index-header">
+                <span class="tag-index-title">Index by tag</span>
+                <button type="button" id="tag-mode-toggle" class="tag-mode-btn" aria-label="Show compact tag list">Compact</button>
+              </div>
+              <div id="tag-index" class="tag-index" aria-label="Skills"></div>
+            </div>
           </div>
 
           <!-- Closing note (no card) -->

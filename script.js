@@ -617,6 +617,16 @@
     setActive(activeId);
   }
 
+  var sectionHead = document.getElementById("sectionHead");
+  var sentinel = document.querySelector(".stick-sentinel");
+
+  function updateStickyHeader() {
+    if (sectionHead && sentinel) {
+      var stuck = sentinel.getBoundingClientRect().top < 0;
+      sectionHead.classList.toggle("is-stuck", stuck);
+    }
+  }
+
   var ticking = false;
   window.addEventListener(
     "scroll",
@@ -624,6 +634,7 @@
       if (!ticking) {
         window.requestAnimationFrame(function () {
           updateActive();
+          updateStickyHeader();
           ticking = false;
         });
         ticking = true;
@@ -631,29 +642,16 @@
     },
     { passive: true }
   );
-  window.addEventListener("resize", updateActive);
+  window.addEventListener("resize", function () {
+    updateActive();
+    updateStickyHeader();
+  });
   updateActive();
+  updateStickyHeader();
 
   // ===== Mobile: sticky title "stuck" detection + hamburger TOC =====
-  var sectionHead = document.getElementById("sectionHead");
-  var sentinel = document.querySelector(".stick-sentinel");
   var toggle = document.getElementById("tocToggle");
   var tocAside = document.querySelector(".toc");
-
-  // Add "is-stuck" to the head when the sentinel scrolls above the top.
-  if (sectionHead && sentinel && "IntersectionObserver" in window) {
-    var stickObserver = new IntersectionObserver(
-      function (entries) {
-        var e = entries[0];
-        // Stuck only when the sentinel has scrolled ABOVE the top
-        // (not when it's still below the viewport before you reach it).
-        var stuck = !e.isIntersecting && e.boundingClientRect.top < 0;
-        sectionHead.classList.toggle("is-stuck", stuck);
-      },
-      { threshold: 0, rootMargin: "0px 0px 0px 0px" }
-    );
-    stickObserver.observe(sentinel);
-  }
 
   // Hamburger opens the TOC as a dropdown panel (with a backdrop).
   if (toggle && tocAside) {
@@ -761,14 +759,35 @@
       graphApi.focusTag(tagId);
     });
 
+    var tagSection = document.getElementById("tag-index-section");
+
     if (typeof ForceGraph !== "function") {
       // Library didn't load — show only the static reverse index.
       mount.hidden = true;
-      if (fallbackEl) fallbackEl.hidden = false;
+      if (tagSection) tagSection.hidden = false;
       return;
     }
     // Graph loaded: show the index too, as a companion panel.
-    if (fallbackEl) fallbackEl.hidden = false;
+    if (tagSection) tagSection.hidden = false;
+
+    // Compact/Full mode toggle for the tag index
+    var modeToggle = document.getElementById("tag-mode-toggle");
+    if (modeToggle && fallbackEl) {
+      modeToggle.addEventListener("click", function (e) {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        var isCompact = fallbackEl.classList.toggle("is-compact");
+        modeToggle.textContent = isCompact ? "Full list" : "Compact";
+        modeToggle.setAttribute("aria-label", isCompact ? "Show full list with projects" : "Show compact tag list");
+        
+        // Stabilize scroll position to prevent jumping
+        if (tagSection) {
+          tagSection.scrollIntoView({ behavior: "auto", block: "nearest" });
+        }
+      });
+    }
 
     // "Hide graph" checkbox: collapse the canvas, keep the tag index.
     var hideToggle = document.getElementById("hideGraph");
