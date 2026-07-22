@@ -787,6 +787,8 @@
           tagSection.scrollIntoView({ behavior: "auto", block: "nearest" });
         }
       });
+
+      initLongPressTooltips(fallbackEl);
     }
 
     // "Hide graph" checkbox: collapse the canvas, keep the tag index.
@@ -1070,5 +1072,24 @@
     if (cls) n.className = cls;
     if (txt != null) n.textContent = txt;
     return n;
+  }
+
+  function initLongPressTooltips(el) {
+    if (!el) return;
+    var timer = null, clear = function () { el.querySelectorAll(".show-tooltip").forEach(function (r) { r.classList.remove("show-tooltip"); }); }, cancel = function () { clearTimeout(timer); };
+    el.addEventListener("touchstart", function (e) {
+      var r = e.target.closest(".tag-index__row");
+      if (!r || !el.classList.contains("is-compact")) return;
+      clear();
+      timer = setTimeout(function () {
+        r.classList.add("show-tooltip");
+        if (navigator.vibrate) navigator.vibrate(10);
+      }, 500);
+    }, { passive: true });
+    el.addEventListener("touchend", cancel, { passive: true });
+    el.addEventListener("touchmove", cancel, { passive: true });
+    document.addEventListener("touchstart", function (e) {
+      if (!e.target.closest(".tag-index__row")) clear();
+    }, { passive: true });
   }
 })();
