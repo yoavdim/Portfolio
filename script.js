@@ -773,6 +773,15 @@
     // Compact/Full mode toggle for the tag index
     var modeToggle = document.getElementById("tag-mode-toggle");
     if (modeToggle && fallbackEl) {
+      // On mobile (side waves hidden at <= 720px) default to the compact
+      // list; on wider screens keep the full list with projects.
+      var mobileNoWaves = window.matchMedia("(max-width: 720px)").matches;
+      if (mobileNoWaves) {
+        fallbackEl.classList.add("is-compact");
+        modeToggle.textContent = "Full list";
+        modeToggle.setAttribute("aria-label", "Show full list with projects");
+      }
+
       modeToggle.addEventListener("click", function (e) {
         if (e) {
           e.preventDefault();
