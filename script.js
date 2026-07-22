@@ -1036,6 +1036,7 @@
       var row = el2("button", "tag-index__row");
       row.type = "button";
       row.setAttribute("data-tag-id", tagId);
+      row.title = "Projects: " + byTag[tag].join(", ");
       row.appendChild(el2("span", "tag-index__tag", tag));
       row.appendChild(el2("span", "tag-index__projects", byTag[tag].join(", ")));
       if (typeof onTagClick === "function") {
