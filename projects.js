@@ -42,7 +42,7 @@ const FEATURED = [
   {
     title: "Agentic Job Finder",
     gh: "https://github.com/yoavdim/agentic-job-finder",
-    tech: ["Kiro LLM agent", "browser automation", "web app", "chrome extension", "AI"],
+    tech: ["Kiro LLM agent", "browser automation", "web app", "Chrome Extension", "AI"],
     image: "",
     illustration: "job-finder",
     blurb:
