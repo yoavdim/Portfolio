@@ -178,7 +178,7 @@ a { color: inherit; }
   border-radius: 24px;
   background: var(--accent);
   overflow: hidden;
-  box-shadow: var(--shadow-soft);
+  box-shadow: 0 14px 32px rgba(45, 20, 80, 0.18), 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 .avatar img {
   width: 100%;
@@ -623,7 +623,7 @@ a { color: inherit; }
 }
 
 .feature-blurb {
-  color: var(--ink-soft);
+  color: var(--ink);
   font-size: 0.95rem;
   line-height: 1.5;
   margin: 0 0 12px;
@@ -631,12 +631,36 @@ a { color: inherit; }
 
 .feature-card__body ul {
   margin: 0;
-  padding-left: 18px;
-  color: var(--ink-soft);
+  padding-left: 0;
+  list-style: none;
+  color: var(--ink);
   font-size: 0.95rem;
-  line-height: 1.5;
+  line-height: 1.6;
 }
-.feature-card__body li { margin-bottom: 4px; }
+.feature-card__body li {
+  position: relative;
+  padding-left: 20px;
+  margin-bottom: 6px;
+}
+.feature-card__body li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0.45em;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--bullet-color, var(--accent-strong));
+}
+
+/* Custom bullet colors per project card */
+#project-stock-analyzer             { --bullet-color: #3b82f6; }
+#project-agentic-job-finder         { --bullet-color: #8b5cf6; }
+#project-optimizing-vaba-based-smr  { --bullet-color: #e08a3c; }
+#project-rl-project-i-did-it-my-way { --bullet-color: #059669; }
+#project-physics-lab-tools          { --bullet-color: #dc2626; }
+
+
 
 /* Lessons side panel */
 .lessons {
@@ -659,6 +683,9 @@ a { color: inherit; }
   font-size: 0.82rem;
   line-height: 1.45;
   color: var(--ink-soft);
+}
+.lessons li {
+  margin-bottom: 6px;
 }
 
 /* Browser mockup */
