@@ -10,10 +10,27 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <script>
+    // use goat counter - a privacy focused traffic tracker (no user profiling)
     window.goatcounter = {
         // Prepends the domain name to the URL path in your dashboard
         path: location.hostname + location.pathname
     };
+  // listen for outbound/internal link clicks
+  document.addEventListener("click", function(e) {
+    // Find the closest anchor tag that was clicked
+    var link = e.target.closest("a");
+    if (link && link.href) {
+      if (window.goatcounter && window.goatcounter.count) {
+        // Use the link's hostname and pathname to build the event name
+        var linkTarget = link.hostname + link.pathname;
+        window.goatcounter.count({
+          path: 'click: ' + linkTarget,
+          title: 'Link Clicked: ' + linkTarget, 
+          event: true
+        });
+      }
+    }
+  });
 </script>
 <script data-goatcounter="https://yoavdim.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
